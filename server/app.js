@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest } = require('./securityManager.js');
 const { getPublicResource, getProtectedResource } = require('./resourceController.js');
@@ -10,7 +9,7 @@ const port = 3000;
 
 app.use(cors({origin: true}));      // Handle CORS preflight
 app.use(cookieParser());            // Parse Cookies onto request obj
-app.use(bodyParser.json());         // Parse JSON content onto request obj
+app.use(express.json());         // Parse JSON content onto request obj
 
 app.get('/', (req,res) => {
     const responseObj = {

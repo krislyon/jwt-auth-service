@@ -6,7 +6,62 @@
 	},
 	"item": [
 		{
+			"name": "Request Public Resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.message ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/public",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"public"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Login P1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"salt field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.salt ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -38,45 +93,22 @@
 			"response": []
 		},
 		{
-			"name": "Login P2 - failure",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"lyonk\",\n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
-				},
-				"url": {
-					"raw": "http://localhost:3000/login",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Login P2 - success",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test( \"Auth Token\", () => {",
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"auth_token field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"});",
+							"",
+							"pm.test( \"Store Auth Token\", () => {",
 							"    const responseJson = pm.response.json();",
 							"    pm.expect( responseJson.auth_token).to.exist;",
 							"    if( responseJson.auth_token ){",
@@ -124,96 +156,25 @@
 			"response": []
 		},
 		{
-			"name": "Logout",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"lyonk\"\n}"
-				},
-				"url": {
-					"raw": "http://localhost:3000/login",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Token Refresh - Success",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:3000/refresh",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"refresh"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Request Public Resource",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:3000/public",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"public"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Request Revocation List",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:3000/trl",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"trl"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Request Protected Resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.message ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -232,7 +193,231 @@
 			"response": []
 		},
 		{
+			"name": "Token Refresh - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"auth_token field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"});",
+							"",
+							"pm.test( \"Store Auth Token\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"    if( responseJson.auth_token ){",
+							"        pm.collectionVariables.set(\"jwt_auth_token\", responseJson.auth_token );",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/refresh",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Revocation List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.revoked_tokens ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/trl",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"trl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"Clear Auth Token\", () => {",
+							"    pm.collectionVariables.set(\"jwt_auth_token\", \"\" );",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - failure",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"lyonk\",\n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Revocation List - No Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/trl",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"trl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Request Protected Resource - No Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"auth": {
 					"type": "noauth"
