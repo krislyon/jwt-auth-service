@@ -40,21 +40,5 @@ describe('userStore tests.', function() {
         assert( userStore.getUser('test3').userId === 'test3', 'failed to retrieve user: test3' );
     });
 
-    it('should allow you to validate the correct password', function() {
-        const testUserId = 'test4';
-        const testPass = 'test789';
-        const newUser = userStore.createUser( testUserId, testPass, ['test']);
-        const expectedHash = getSHA256Hash( newUser.pwSalt + testPass ).toString('hex');
-        assert( userStore.validatePassword( testUserId, expectedHash ), 'failed to validate password');
-        assert( !userStore.validatePassword( testUserId, '1111111111' ), 'password validated with incorrect hash');
-    });
-
-    it('should fail validation with the incorrect hash', function() {
-        const testUserId = 'test5';
-        const testPass = 'test789';
-        const newUser = userStore.createUser( testUserId, testPass, ['test']);
-        assert( !userStore.validatePassword( testUserId, '1111111111' ), 'password validated with incorrect hash');
-    });
-
     it('pending test');
 });
