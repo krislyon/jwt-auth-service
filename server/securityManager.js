@@ -51,7 +51,7 @@ const handleAuthentication = async(req,res) => {
     var cookieOpts = {
         httpOnly: true,
         sameSite: 'lax',
-//      secure: true,
+        secure: true,
         maxAge: 10 * 60 * 1000,
     }
     res.status(200)
@@ -85,7 +85,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     var cookieOpts = {
         httpOnly: true,
         sameSite: 'lax',
-    //      secure: true,
+        secure: true,
         maxAge: 10 * 60 * 1000,
     }
 

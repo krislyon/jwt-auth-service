@@ -1,4 +1,6 @@
 const { logger } = require('./logManager.js');
+const https = require('https');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -33,8 +35,17 @@ app.get('/public',    getPublicResource );
 app.get('/protected', handleRequestValidation, getProtectedResource );
 
 //Start up express as configured above
-app.listen( port, () => {
-    logger.info('*****************************************************');
-    logger.info(`Secure JWT Demo listening at http://localhost:${port}`);
-    logger.info('*****************************************************');
+// app.listen( port, () => {
+//     logger.info('*****************************************************');
+//     logger.info(`Secure JWT Demo listening at http://localhost:${port}`);
+//     logger.info('*****************************************************');
+// });
+const certificates = {
+    key:  fs.readFileSync('certs/server.key'),
+    cert: fs.readFileSync('certs/server.cert')
+}
+https.createServer(certificates,app).listen(port, () => {
+     logger.info('******************************************************');
+     logger.info(`Secure JWT Demo listening at https://localhost:${port}`);
+     logger.info('******************************************************');
 });

@@ -29,12 +29,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/public",
-					"protocol": "http",
+					"raw": "{{base_url}}/public",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"public"
 					]
@@ -79,12 +77,10 @@
 					"raw": "{\n    \"userId\" : \"lyonk\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:3000/login",
-					"protocol": "http",
+					"raw": "{{base_url}}/login",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"login"
 					]
@@ -142,12 +138,10 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:3000/login",
-					"protocol": "http",
+					"raw": "{{base_url}}/login",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"login"
 					]
@@ -179,12 +173,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/protected",
-					"protocol": "http",
+					"raw": "{{base_url}}/protected",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"protected"
 					]
@@ -224,12 +216,10 @@
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/refresh",
-					"protocol": "http",
+					"raw": "{{base_url}}/refresh",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"refresh"
 					]
@@ -261,12 +251,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/trl",
-					"protocol": "http",
+					"raw": "{{base_url}}/trl",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"trl"
 					]
@@ -313,12 +301,10 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:3000/logout",
-					"protocol": "http",
+					"raw": "{{base_url}}/logout",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"logout"
 					]
@@ -358,12 +344,10 @@
 					"raw": "{\n    \"userId\" : \"lyonk\",\n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:3000/login",
-					"protocol": "http",
+					"raw": "{{base_url}}/login",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"login"
 					]
@@ -390,12 +374,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/trl",
-					"protocol": "http",
+					"raw": "{{base_url}}/trl",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"trl"
 					]
@@ -425,12 +407,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:3000/protected",
-					"protocol": "http",
+					"raw": "{{base_url}}/protected",
 					"host": [
-						"localhost"
+						"{{base_url}}"
 					],
-					"port": "3000",
 					"path": [
 						"protected"
 					]
@@ -473,6 +453,10 @@
 		{
 			"key": "jwt_auth_token",
 			"value": "asdf"
+		},
+		{
+			"key": "base_url",
+			"value": "https://localhost:3000"
 		}
 	]
 }
