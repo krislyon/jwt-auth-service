@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "7b50553d-8ba3-4177-87ec-c19f54df7e29",
-		"name": "JWT Test Impl",
+		"name": "Auth Server Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
