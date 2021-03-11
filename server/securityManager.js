@@ -31,7 +31,7 @@ const handleAuthentication = async(req,res) => {
     }
 
     if( !req.body.pwHash ){
-        logger.info('Authentication Complete: Returning Salt');
+        logger.debug('Authentication Initiated: Returning Salt');
         res.status(200).json( { salt: user.pwSalt } );
         return;
     }
@@ -44,7 +44,7 @@ const handleAuthentication = async(req,res) => {
     }
 
     // User is now Authenticated.
-    logger.debug(`User '${user.userId}' Authenticated Successfully, returning JWT token pair.`);
+    logger.info(`User '${user.userId}' Authenticated Successfully, issuing auth_token/refresh_token.`);
     const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user);
 
     // Set a client-side cookie with the refresh token
@@ -89,7 +89,7 @@ const handleAuthenticationRefresh = async(req,res) => {
         maxAge: 10 * 60 * 1000,
     }
 
-    logger.info('auth_token/refresh_token successfully refreshed.');
+    logger.info(`User '${user.userId}' successfully refreshed auth_token/refresh_token.`);
     res.status(200)
         .cookie('refresh_token', signedRefreshToken, cookieOpts )
         .json( { auth_token: signedAuthToken });
@@ -108,7 +108,7 @@ const handleRequstValidation = async(req,res,next) => {
         const decoded = validateAuthenticationToken(token);
         const user = userStore.getUser(decoded.userId);
         if( !user ){
-            logger.warn(`Request Validation Failed: User ${decoded.userId} does not exist.`);
+            logger.warn(`Request Validation Failed: User '${decoded.userId}' does not exist.`);
             res.sendStatus(401);
         }
         req.user = user;
@@ -122,11 +122,11 @@ const handleRequstValidation = async(req,res,next) => {
 
 const handleLogout = async(req,res) => {
     var errState = false;
-
+    var decoded;
     if( req.headers.authorization ){
         try{
             const token = req.headers.authorization.split(' ')[1];
-            const decoded = validateAuthenticationToken(token,{ ignoreExpiration: true });
+            decoded = validateAuthenticationToken(token,{ ignoreExpiration: true });
             revokeToken(decoded);
         }catch(err){
             errState = true;
@@ -135,11 +135,15 @@ const handleLogout = async(req,res) => {
 
     if( req.cookies.refresh_token ){
         try{
-            const decoded = validateRefreshToken(req.cookies.refresh_token, { ignoreExpiration: true});
+            decoded = validateRefreshToken(req.cookies.refresh_token, { ignoreExpiration: true});
             revokeToken(decoded);
         }catch(err){
             errState = true;
         }
+    }
+
+    if( decoded ){
+        logger.info(`User '${decoded.userId}' successfully logged out.`);
     }
 
     if( errState ){
@@ -195,7 +199,7 @@ const validateRefreshToken = (token,verifyOpts) => {
         logger.warn(errMsg)
         throw({ message: errMsg });
     }
-    logger.info('Refresh token validated successfully.');
+    logger.debug('Refresh token validated successfully.');
     return decoded;
 }
 
@@ -221,7 +225,7 @@ const validateAuthenticationToken = (token,verifyOpts) => {
         logger.warn(errMsg);
         throw({message: errMsg});
     }
-    logger.info('Authentication token validated successfully');
+    logger.debug('Authentication token validated successfully');
     return decoded;
 }
 
