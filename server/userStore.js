@@ -1,3 +1,4 @@
+const { logger } = require('./logManager');
 const crypto = require('crypto')
 
 const users = {};
@@ -19,7 +20,7 @@ const createUser = (userId,password,roles) => {
         roles: roles,
         ...pwResult
     }
-    console.log(`User Created: ${newUser.userId},${newUser.pwHash},${newUser.pwSalt}`);
+    logger.debug(`User Created: ${newUser.userId},${newUser.pwHash},${newUser.pwSalt}`);
     users[userId] = newUser;
     return newUser;
 };

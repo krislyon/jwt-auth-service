@@ -1,3 +1,4 @@
+const { logger } = require('./logManager.js');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -7,8 +8,8 @@ const { getPublicResource, getProtectedResource } = require('./resourceControlle
 const app = express();
 const port = 3000;
 
-app.use(cors({origin: true}));      // Handle CORS preflight
-app.use(cookieParser());            // Parse Cookies onto request obj
+app.use(cors({origin: true}));   // Handle CORS preflight
+app.use(cookieParser());         // Parse Cookies onto request obj
 app.use(express.json());         // Parse JSON content onto request obj
 
 app.get('/', (req,res) => {
@@ -33,5 +34,7 @@ app.get('/protected', handleRequestValidation, getProtectedResource );
 
 //Start up express as configured above
 app.listen( port, () => {
-    console.log(`Secure JWT Demo listening at http://localhost:${port}`);
+    logger.info('*****************************************************');
+    logger.info(`Secure JWT Demo listening at http://localhost:${port}`);
+    logger.info('*****************************************************');
 });

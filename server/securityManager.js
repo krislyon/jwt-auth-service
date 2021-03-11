@@ -1,3 +1,4 @@
+const { logger } = require('./logManager');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userStore = require('./userStore');
@@ -15,35 +16,35 @@ const tokenRevocationList = [];
 // (INSECURE) - should be leveraging public key not a single secret.
 
 const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
-console.log('Token Signing Secret: ' + tokenSigningSecret );
+logger.debug('Token Signing Secret: ' + tokenSigningSecret );
 
 const handleAuthentication = async(req,res) => {
     if( !req.body.userId ){
-        console.log('P1 Authentication Failed: req.body.userId was not found');
+        logger.warn('Authentication Failed: req.body.userId was not found');
         res.sendStatus(401);
     }
 
     const user = userStore.getUser(req.body.userId);
     if( !user ){
-        console.log(`P1 Authentication Failed: User ${req.body.userId} does not exist.`);
+        logger.info(`Authentication Failed: User ${req.body.userId} does not exist.`);
         res.sendStatus(401);
     }
 
     if( !req.body.pwHash ){
-        console.log('P1 Authentication Complete: Returning Salt');
+        logger.info('Authentication Complete: Returning Salt');
         res.status(200).json( { salt: user.pwSalt } );
         return;
     }
 
     // Validate password hash
     if( req.body.pwHash !== user.pwHash ){
-        console.log('P2 Authentication Failed: password hashes did not match.')
+        logger.warn('Authentication Failed: password hashes did not match.')
         res.sendStatus(401);
         return;
     }
 
     // User is now Authenticated.
-    console.debug(`User '${user.userId}' Authenticated Successfully, returning JWT token pair.`);
+    logger.debug(`User '${user.userId}' Authenticated Successfully, returning JWT token pair.`);
     const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user);
 
     // Set a client-side cookie with the refresh token
@@ -61,7 +62,7 @@ const handleAuthentication = async(req,res) => {
 const handleAuthenticationRefresh = async(req,res) => {
     // Validate presence of Refresh Token
     if( !req.cookies.refresh_token ){
-        console.log('Refresh Failed: No refresh_token found. (req.cookies.refresh_token missing from request).');
+        logger.info('Refresh Failed: No refresh_token found. (req.cookies.refresh_token missing from request).');
         res.sendStatus(401);
         return;
     }
@@ -88,7 +89,7 @@ const handleAuthenticationRefresh = async(req,res) => {
         maxAge: 10 * 60 * 1000,
     }
 
-    console.log('auth_token/refresh_token successfully refreshed.');
+    logger.info('auth_token/refresh_token successfully refreshed.');
     res.status(200)
         .cookie('refresh_token', signedRefreshToken, cookieOpts )
         .json( { auth_token: signedAuthToken });
@@ -98,7 +99,7 @@ const handleAuthenticationRefresh = async(req,res) => {
 
 const handleRequstValidation = async(req,res,next) => {
     if( !req.headers.authorization ){
-        console.log('Request Validation Failed: Unable to locate authorization header.');
+        logger.warn('Request Validation Failed: Unable to locate authorization header.');
         res.sendStatus(401);
         return;
     }
@@ -107,7 +108,7 @@ const handleRequstValidation = async(req,res,next) => {
         const decoded = validateAuthenticationToken(token);
         const user = userStore.getUser(decoded.userId);
         if( !user ){
-            console.log(`Request Validation Failed: User ${decoded.userId} does not exist.`);
+            logger.warn(`Request Validation Failed: User ${decoded.userId} does not exist.`);
             res.sendStatus(401);
         }
         req.user = user;
@@ -155,9 +156,9 @@ const handleTRLRequest = async(req,res) => {
 const revokeToken = (jwt) => {
     tokenRevocationList.push(jwt.jti);
     if(jwt.refresh === true ){
-        console.log(`refresh_token with identifier '${jwt.jti}' has been added to the revocation list.`);
+        logger.debug(`refresh_token with identifier '${jwt.jti}' has been added to the revocation list.`);
     }else{
-        console.log(`auth_token with identifier '${jwt.jti}' has been added to the revocation list.`);
+        logger.debug(`auth_token with identifier '${jwt.jti}' has been added to the revocation list.`);
     }
 }
 
@@ -166,62 +167,62 @@ const checkRevocation = (jwt) => {
 }
 
 const validateRefreshToken = (token,verifyOpts) => {
-    var verifyOpts = {
+    var options = {
         algorithms: ["HS256"],
         maxAge: "10m",
         ...verifyOpts
     };
 
     // Validate JWT Refresh Token
-    var token;
+    var decoded;
     try{
-        token = jwt.verify( token, tokenSigningSecret, verifyOpts );
+        decoded = jwt.verify( token, tokenSigningSecret, options );
     }catch(err){
-        console.log(`Refresh Failed: refresh_token failed validation. (${err})`);
+        logger.warn(`Refresh Failed: refresh_token failed validation. (${err})`);
         throw(err);
     }
 
     // Ensure JWT Refresh Token has not been previously revoked
-    if( checkRevocation(token) ){
+    if( checkRevocation(decoded) ){
         const errMsg = `Refresh Failed: refresh_token was previously revoked (attempted re-use).`;
-        console.log(errMsg);
+        logger.warn(errMsg);
         throw( {message: errMsg});
     }
 
     // Ensure Token is a refresh token
-    if( token.refresh != true ){
+    if( decoded.refresh != true ){
         const errMsg = `Refresh Failed: refresh_token validated but was not a refresh token. (attempted subversion).`;
-        console.log(errMsg)
+        logger.warn(errMsg)
         throw({ message: errMsg });
     }
-    console.log('Refresh token validated successfully.');
-    return token;
+    logger.info('Refresh token validated successfully.');
+    return decoded;
 }
 
 const validateAuthenticationToken = (token,verifyOpts) => {
-    var verifyOpts = {
+    var options = {
         algorithms: ["HS256"],
         maxAge: "5m",
         ...verifyOpts
     };
 
     // Validate JWT Refresh Token
-    var token;
+    var decoded;
     try{
-        token = jwt.verify( token, tokenSigningSecret, verifyOpts );
+        decoded = jwt.verify( token, tokenSigningSecret, options );
     }catch(err){
-        console.log(`Refresh Failed: auth_token failed validation. (${err})`);
+        logger.warn(`Refresh Failed: auth_token failed validation. (${err})`);
         throw(err);
     }
 
     // Ensure token has not been previously revoked
-    if( checkRevocation(token) ){
+    if( checkRevocation(decoded) ){
         const errMsg = `Refresh Failed: auth_token was previously revoked (attempted re-use).`;
-        console.log(errMsg);
+        logger.warn(errMsg);
         throw({message: errMsg});
     }
-    console.log('Authentication token validated successfully');
-    return token;
+    logger.info('Authentication token validated successfully');
+    return decoded;
 }
 
 const generateJWTTokenPair = (user) => {
@@ -241,10 +242,6 @@ const generateJWTTokenPair = (user) => {
     var refreshToken = { userId: user.userId, refresh: true };
     const signedAuthToken = jwt.sign( authToken, tokenSigningSecret, authTokenOpts );
     const signedRefreshToken = jwt.sign( refreshToken, tokenSigningSecret, refreshTokenOpts );
-
-    // Log the newly minted tokens
-    // console.log('auth_token: ' + signedAuthToken );
-    // console.log('refresh_token: ' + signedRefreshToken );
 
     return { signedAuthToken, signedRefreshToken };
 }
