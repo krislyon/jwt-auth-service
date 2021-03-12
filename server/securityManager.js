@@ -19,15 +19,30 @@ const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
 logger.debug('Token Signing Secret: ' + tokenSigningSecret );
 
 const handleAuthentication = async(req,res) => {
+    logger.debug('Authentication Request Received - beginning auth.');
+
     if( !req.body.userId ){
         logger.warn('Authentication Failed: req.body.userId was not found');
-        res.sendStatus(401);
+        res.status(500).json( { message: "userId was not found in the request body." } );
+        return;
     }
 
     const user = userStore.getUser(req.body.userId);
     if( !user ){
-        logger.info(`Authentication Failed: User ${req.body.userId} does not exist.`);
-        res.sendStatus(401);
+        if( !req.body.pwHash ){
+            // User was not found in our user store, return a dummy salt to prevent enumeration.
+            logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning dummy salt.`);
+            const hash = crypto.createHash('sha256');
+            hash.update( 'DUMMYSALT' + req.body.userId );
+            res.status(200).json( { salt: hash.digest().toString('hex') } );
+            return;
+        }else{
+            logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning 401-Unauthorized.`);
+            // User still isn't found in the store, but they've now responded to the dummy hash
+            // send them an unauthorized request, as if it was a bad password.
+            res.sendStatus(401);
+            return;
+        }
     }
 
     if( !req.body.pwHash ){
@@ -60,6 +75,8 @@ const handleAuthentication = async(req,res) => {
 }
 
 const handleAuthenticationRefresh = async(req,res) => {
+    logger.debug('Refresh Request Received - beginning refresh.');
+
     // Validate presence of Refresh Token
     if( !req.cookies.refresh_token ){
         logger.info('Refresh Failed: No refresh_token found. (req.cookies.refresh_token missing from request).');
@@ -121,6 +138,8 @@ const handleRequstValidation = async(req,res,next) => {
 };
 
 const handleLogout = async(req,res) => {
+    logger.debug('Logout Request Received - beginning logout.');
+
     var errState = false;
     var decoded;
     if( req.headers.authorization ){
@@ -215,7 +234,7 @@ const validateAuthenticationToken = (token,verifyOpts) => {
     try{
         decoded = jwt.verify( token, tokenSigningSecret, options );
     }catch(err){
-        logger.warn(`Refresh Failed: auth_token failed validation. (${err})`);
+        logger.warn(`Validation Failed: auth_token failed validation. (${err})`);
         throw(err);
     }
 
