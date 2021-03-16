@@ -65,7 +65,7 @@ const handleAuthentication = async(req,res) => {
     // Set a client-side cookie with the refresh token
     var cookieOpts = {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'None',
         secure: true,
         maxAge: 10 * 60 * 1000,
     }
@@ -75,11 +75,11 @@ const handleAuthentication = async(req,res) => {
 }
 
 const handleAuthenticationRefresh = async(req,res) => {
-    logger.debug('Refresh Request Received - beginning refresh.');
+    logger.debug('Refresh Request Received - attempting refresh.');
 
     // Validate presence of Refresh Token
     if( !req.cookies.refresh_token ){
-        logger.info('Refresh Failed: No refresh_token found. (req.cookies.refresh_token missing from request).');
+        logger.warn('Refresh Failed: No refresh_token found. (req.cookies.refresh_token missing from request).');
         res.sendStatus(401);
         return;
     }
@@ -101,7 +101,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     // Update client-side cookie with new refresh token, and return result
     var cookieOpts = {
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'None',
         secure: true,
         maxAge: 10 * 60 * 1000,
     }

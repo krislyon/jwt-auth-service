@@ -1,15 +1,32 @@
 import { ref, readonly } from 'vue';
 import jwtDecode from 'jwt-decode'
+import axios from '../composables/axiosClient'
 
-const USER_STATE = "user-state";
+// const USER_STATE = "user-state";
 
-const loadDefaultState = () => {
-    const cachedUser = localStorage.getItem(USER_STATE);
-    return cachedUser ? cachedUser : {};
+// const loadDefaultState = () => {
+//     console.log('Loaded default user state from local storage');
+//     const cachedUser = JSON.parse(localStorage.getItem(USER_STATE));
+//     console.log(cachedUser);
+//     return cachedUser ? cachedUser : {};
+// }
+var   authToken = "";
+
+const currentUserState = ref({});
+const loadDefaultState = async () => {
+    if( authToken == "" ){
+        // attempt a refresh.
+        const newUserState = await axios.post('/refresh')
+                                    .then( result => {
+                                        if( result && result.status === 200 ){
+                                            refresh( result.data.auth_token );
+                                        }
+                                    });
+        return newUserState;
+    }
 }
 
-const currentUserState = ref( loadDefaultState() );
-var   authToken = "";
+loadDefaultState();
 
 const login = (userdata,auth_token) => {
     const newUserState = {
@@ -21,21 +38,26 @@ const login = (userdata,auth_token) => {
     authToken = auth_token;
 
     // authToken must never be stored to localStorage or sessionStorage!!!
-    localStorage.setItem(USER_STATE,currentUserState);
+    //localStorage.setItem(USER_STATE, JSON.stringify(currentUserState));
 }
 
 const logout = () => {
     currentUserState.value = {};
     authToken = "";
-    localStorage.removeItem(USER_STATE);
+    //localStorage.removeItem(USER_STATE);
     console.debug('User signed out.');
 }
 
 const refresh = (auth_token) => {
-    currentUserState.value.jwt = { ...jwtDecode(auth_token) };
+    const newUserState = {
+        loggedIn: true,
+        jwt: { ...jwtDecode(auth_token) }
+    };
+    currentUserState.value = newUserState;
     authToken = auth_token;
     console.debug('Auth Token updated.');
 }
+
 
 export const useUser = () => {
     return {
@@ -46,3 +68,4 @@ export const useUser = () => {
         refresh
     }
 }
+console.dir( useUser() );
