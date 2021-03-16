@@ -3,6 +3,17 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userStore = require('./userStore');
 
+logger.warn("*****************************************************************************");
+logger.warn("Demo implmentation requiring further hardening.  Do not deploy to production.");
+logger.warn("- Update from HS256 to Asymetric Algorithm");
+logger.warn("- Update self-signed SSL Certificates");
+logger.warn("- Implement database backed token revocation list");
+logger.warn("- Implement database backed user storage and roles.");
+logger.warn("- Enhance logging and track token status.");
+logger.warn("- Update CORS Configuration");
+logger.warn("- Update to use secure PRNG");
+logger.warn("*****************************************************************************");
+
 // Initialize Store with default users
 // (INSECURE) - should be db backed, and a real user store
 userStore.createUser( 'lyonk', 'test', ['admin','user'] );
@@ -251,13 +262,13 @@ const validateAuthenticationToken = (token,verifyOpts) => {
 const generateJWTTokenPair = (user) => {
     var authTokenOpts = {
         algorithm: 'HS256',
-        jwtid: crypto.randomBytes(8).toString('hex'),
+        jwtid: crypto.randomBytes(16).toString('hex'),
         expiresIn: '1m',
         notBefore: '-1ms',
     }
     var refreshTokenOpts = {
         algorithm: 'HS256',
-        jwtid: crypto.randomBytes(8).toString('hex'),
+        jwtid: crypto.randomBytes(16).toString('hex'),
         expiresIn: '2m',
         notBefore: '-1ms',
     }

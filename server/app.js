@@ -1,6 +1,7 @@
 const { logger } = require('./logManager.js');
 const https = require('https');
 const fs = require('fs');
+const figlet = require('figlet');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
@@ -69,7 +70,17 @@ const certificates = {
     cert: fs.readFileSync('certs/server.cert')
 }
 https.createServer(certificates,app).listen(port, () => {
+
+      figlet('-= JWT-Auth-Service =-', function(err, data) {
+        if (err) {
+            console.log('Something went wrong...');
+            console.dir(err);
+            return;
+        }
+        console.log(data)
+      });
+
      logger.info('******************************************************');
-     logger.info(`Secure JWT Demo listening at https://localhost:${port}`);
+     logger.info(`JWT-Auth-Service listening at https://localhost:${port}`);
      logger.info('******************************************************');
 });
