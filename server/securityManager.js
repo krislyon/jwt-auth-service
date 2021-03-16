@@ -67,7 +67,7 @@ const handleAuthentication = async(req,res) => {
         httpOnly: true,
         sameSite: 'None',
         secure: true,
-        maxAge: 10 * 60 * 1000,
+        maxAge: 2 * 60 * 1000,
     }
     res.status(200)
         .cookie('refresh_token', signedRefreshToken, cookieOpts )
@@ -103,7 +103,7 @@ const handleAuthenticationRefresh = async(req,res) => {
         httpOnly: true,
         sameSite: 'None',
         secure: true,
-        maxAge: 10 * 60 * 1000,
+        maxAge: 2 * 60 * 1000,
     }
 
     logger.info(`User '${user.userId}' successfully refreshed auth_token/refresh_token.`);
@@ -252,13 +252,13 @@ const generateJWTTokenPair = (user) => {
     var authTokenOpts = {
         algorithm: 'HS256',
         jwtid: crypto.randomBytes(8).toString('hex'),
-        expiresIn: '5m',  // 5 minutes
+        expiresIn: '1m',
         notBefore: '-1ms',
     }
     var refreshTokenOpts = {
         algorithm: 'HS256',
         jwtid: crypto.randomBytes(8).toString('hex'),
-        expiresIn: '10m',  // 10 minutes
+        expiresIn: '2m',
         notBefore: '-1ms',
     }
     var authToken = { userId: user.userId, roles: user.roles };

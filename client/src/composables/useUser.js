@@ -42,10 +42,12 @@ const login = (userdata,auth_token) => {
 }
 
 const logout = () => {
+    if( authToken !== "" ){
+        console.debug('User signed out.');
+        authToken = "";
+    }
     currentUserState.value = {};
-    authToken = "";
     //localStorage.removeItem(USER_STATE);
-    console.debug('User signed out.');
 }
 
 const refresh = (auth_token) => {
@@ -68,4 +70,3 @@ export const useUser = () => {
         refresh
     }
 }
-console.dir( useUser() );

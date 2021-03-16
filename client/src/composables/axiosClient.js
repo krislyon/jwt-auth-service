@@ -40,6 +40,11 @@ const axiosClient = () => {
           return result.response;
         })
     }
+
+    if( err.response.status === 401 && originalRequest.url === '/refresh' ){
+      user.logout();
+    }
+
     return err;
   });
 
