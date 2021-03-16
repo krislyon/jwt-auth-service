@@ -54,7 +54,7 @@ const httpLogger = (request,response,next) => {
 app.post('/login', handleAuthentication );
 app.post('/refresh', handleAuthenticationRefresh );
 app.post('/logout', handleLogout );
-app.get('/trl', handleRequestValidation, handleTRLRequest );
+app.get('/trl', handleTRLRequest );
 
 // Sample Resource Endpoints
 app.get('/', getPublicResource );
