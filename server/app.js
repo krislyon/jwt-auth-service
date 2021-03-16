@@ -6,7 +6,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest } = require('./securityManager.js');
 const { getPublicResource, getProtectedResource } = require('./resourceController.js');
-const { nextTick } = require('process');
 
 const app = express();
 const port = 3000;
@@ -52,15 +51,15 @@ const httpLogger = (request,response,next) => {
 
 
 // Login State Management
-app.post('/login', httpLogger, handleAuthentication );
-app.post('/refresh', httpLogger, handleAuthenticationRefresh );
+app.post('/login', handleAuthentication );
+app.post('/refresh', handleAuthenticationRefresh );
 app.post('/logout', handleLogout );
 app.get('/trl', handleRequestValidation, handleTRLRequest );
 
 // Sample Resource Endpoints
 app.get('/', getPublicResource );
 app.get('/public', getPublicResource );
-app.get('/protected', httpLogger, handleRequestValidation, getProtectedResource );
+app.get('/protected', handleRequestValidation, getProtectedResource );
 
 
 
