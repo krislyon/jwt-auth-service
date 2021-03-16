@@ -54,7 +54,20 @@
 							"pm.test( \"salt field is properly returned in json body.\", () => {",
 							"    const responseJson = pm.response.json();",
 							"    pm.expect( responseJson.salt ).to.exist;",
-							"});"
+							"});",
+							"",
+							"pm.test( \"Store password hash\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.salt).to.exist;",
+							"    if( responseJson.salt ){",
+							"        var password = pm.collectionVariables.get(\"test_password\");",
+							"        var hash = CryptoJS.enc.Hex.stringify( CryptoJS.SHA256( responseJson.salt + password ) );",
+							"        pm.collectionVariables.set(\"password_hash\", hash );",
+							"        console.log(\"Calculated PW Hash: \" + hash );",
+							"    }",
+							"});",
+							"",
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -74,7 +87,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"lyonk\"\n}"
+					"raw": "{\n    \"userId\" : \"{{test_user}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
@@ -147,7 +160,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"lyonk\",\n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4d\"\n}",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"pwHash\" : \"{{password_hash}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -469,11 +482,23 @@
 	"variable": [
 		{
 			"key": "jwt_auth_token",
-			"value": "asdf"
+			"value": ""
 		},
 		{
 			"key": "base_url",
 			"value": "https://localhost:3000"
+		},
+		{
+			"key": "test_user",
+			"value": "test"
+		},
+		{
+			"key": "test_password",
+			"value": "test"
+		},
+		{
+			"key": "password_hash",
+			"value": ""
 		}
 	]
 }

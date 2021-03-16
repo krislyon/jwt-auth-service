@@ -4,7 +4,7 @@ const crypto = require('crypto')
 const users = {};
 
 const calculatePasswordHash = (input) => {
-    const salt = 'aaaaaaaaaaaa'; //crypto.randomBytes(32).toString('hex');
+    const salt = crypto.randomBytes(32).toString('hex');
     const hash = crypto.createHash('sha256');
     hash.update( salt + input );
     return {
