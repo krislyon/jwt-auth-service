@@ -22,8 +22,23 @@ logger.warn("*******************************************************************
 userStore.createUser( 'lyonk', 'test', ['admin','user'] );
 userStore.createUser( 'test', 'test', ['user'] );
 
-const tokenSigningKey = fs.readFileSync('keys/tokenkey_priv.pem');
-const tokenVerifyKey = fs.readFileSync('keys/tokenkey_pub.pem');
+
+const initializeKeys = () => {
+    var bufSigningKey = fs.readFileSync('keys/tokenkey_priv.pem');
+    var bufVerifyKey = fs.readFileSync('keys/tokenkey_pub.pem');
+    const signingKO = crypto.createPrivateKey({
+        key: bufSigningKey,
+        format: 'pem'
+    });
+    const verificationKO = crypto.createPublicKey({
+        key: bufVerifyKey,
+        format: 'pem'
+    });
+    bufSigningKey.fill('0');
+    bufVerifyKey.fill('0');
+    return { signingKO, verificationKO };
+}
+const tokenKeypair = initializeKeys();
 
 // Generate a token signing secret
 // (INSECURE) - should be leveraging public key not a single secret.
@@ -248,7 +263,7 @@ const validateAuthenticationToken = (token,verifyOpts) => {
     // Validate JWT Refresh Token
     var decoded;
     try{
-        decoded = jwt.verify( token, tokenVerifyKey, options );
+        decoded = jwt.verify( token, tokenKeypair.verificationKO, options );
     }catch(err){
         logger.warn(`Validation Failed: auth_token failed validation. (${err})`);
         throw(err);
@@ -279,8 +294,8 @@ const generateJWTTokenPair = (user) => {
     }
     var authToken = { userId: user.userId, roles: user.roles };
     var refreshToken = { userId: user.userId, refresh: true };
-    const signedAuthToken = jwt.sign( authToken, tokenSigningKey, authTokenOpts );
-    const signedRefreshToken = jwt.sign( refreshToken, tokenSigningKey, refreshTokenOpts );
+    const signedAuthToken = jwt.sign( authToken, tokenKeypair.signingKO, authTokenOpts );
+    const signedRefreshToken = jwt.sign( refreshToken, tokenKeypair.signingKO, refreshTokenOpts );
 
     return { signedAuthToken, signedRefreshToken };
 }
@@ -290,6 +305,5 @@ exports.handleAuthenticationRefresh = handleAuthenticationRefresh;
 exports.handleRequestValidation = handleRequestValidation;
 exports.handleLogout = handleLogout;
 exports.handleTRLRequest = handleTRLRequest;
-
 exports.revokeToken = revokeToken;
 exports.checkRevocation = checkRevocation;
