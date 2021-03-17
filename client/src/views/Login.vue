@@ -27,7 +27,6 @@ export default {
     const performLogin = async () => {
       // Post to /login to get salt for user
       try {
-        console.log(username.value)
         let userId = username.value
         let res = await axios.post('/login', { userId })
         if (res.status != 200) {
