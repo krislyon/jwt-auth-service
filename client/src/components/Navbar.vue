@@ -14,11 +14,13 @@
 <script>
 import { useUser } from '../composables/useUser.js'
 import axios from '../composables/axiosClient'
+import { useRouter } from 'vue-router'
 
 export default {
     setup(){
         const user = useUser();
         const userState = user.state;
+        const router = useRouter();
 
         const handleSignOut = async () => {
             const user = useUser();
@@ -30,6 +32,7 @@ export default {
                 }
                 user.logout();
             }
+            router.push({ name: 'Login'});
         };
 
         return {

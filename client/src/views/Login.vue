@@ -16,11 +16,13 @@ import { ref } from 'vue'
 import crypto   from 'crypto';
 import axios from '../composables/axiosClient'
 import { useUser } from '../composables/useUser';
+import { useRouter } from 'vue-router'
 
 export default {
     setup() {
         const username = ref('');
         const password = ref('');
+        const router = useRouter();
 
         const performLogin = async () => {
             // Post to /login to get salt for user
@@ -49,6 +51,7 @@ export default {
 
                 console.log('Logged In.');
                 user = useUser();
+                router.push({ name: 'Home' });
             }catch( err ){
                 console.log(err);
             }

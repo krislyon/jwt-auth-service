@@ -6,7 +6,7 @@
         <p>Auth Status: {{authStatus}}</p>
         <p>{{responseStatus}}</p>
         <!-- <p>{{responseHeaders}}</p> -->
-        <p>{{responseData}}</p>
+        <p>{{responseData.message}}</p>
     </div>
 </template>
 
@@ -26,7 +26,7 @@ export default {
     const responseData = ref('');
 
     const authStatus = computed( () => {
-      return user.state.value.loggedIn ? { status: "Logged In" } : { status: "Logged Out" }
+      return user.state.value.loggedIn ? "Logged In" : "Logged Out";
     });
 
     const updateResponseView = (response) => {

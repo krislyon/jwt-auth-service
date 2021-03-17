@@ -1,13 +1,13 @@
 const getPublicResource = async(req, res) => {
     const responseObj = {
-        message: 'public resource'
+        message: `fetched a public resource: ${new Date().toISOString()}`
     }
     res.status(200).json( responseObj );
 }
 
 const getProtectedResource = async(req,res) => {
     const responseObj = {
-        message: 'protected resource'
+        message: `fetched a protected resource: ${new Date().toISOString()}`
     }
     res.status(200).json( responseObj );
 }

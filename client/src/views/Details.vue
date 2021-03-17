@@ -1,7 +1,4 @@
 <template>
-    <div v-if="userState.photoURL">
-        <img :src="userState.photoURL" />
-    </div>
     <div>
         <table class="authPropsTable">
             <tr>
@@ -10,15 +7,11 @@
             </tr>
             <tr>
                 <td>Auth Token</td>
-                <td>{{userState.token}}</td>
-            </tr>
-            <tr>
-                <td>Refresh Token</td>
-                <td>{{userState.refreshToken}}</td>
+                <td>{{user.authToken}}</td>
             </tr>
             <tr>
                 <td>userState</td>
-                <td>{{userState}}</td>
+                <td>{{user.state.value}}</td>
             </tr>
 
         </table>
@@ -31,8 +24,7 @@ import { useUser } from '../composables/useUser.js'
 export default {
     setup() {
         const user = useUser();
-        const userState = user.state;
-        return { userState };
+        return { user };
     }
 }
 </script>

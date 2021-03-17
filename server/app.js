@@ -71,7 +71,7 @@ const certificates = {
 }
 https.createServer(certificates,app).listen(port, () => {
 
-      figlet('-= JWT-Auth-Service =-', function(err, data) {
+      figlet('-JWT-Auth-Service-', function(err, data) {
         if (err) {
             console.log('Something went wrong...');
             console.dir(err);
