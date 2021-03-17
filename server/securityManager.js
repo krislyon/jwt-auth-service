@@ -2,6 +2,7 @@ const { logger } = require('./logManager');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userStore = require('./userStore');
+const tokenStore = require('./tokenStore');
 const fs = require('fs');
 
 logger.warn("*****************************************************************************");
@@ -44,10 +45,6 @@ const tokenKeypair = initializeKeys();
 // (INSECURE) - should be leveraging public key not a single secret.
 // const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
 // logger.debug('Token Signing Secret: ' + tokenSigningSecret );
-
-// Create an in memory token revocation list
-// (INSECURE) - should be db backed, and timeboxed
-const tokenRevocationList = [];
 
 const handleAuthentication = async(req,res) => {
     logger.debug('Authentication Request Received - beginning auth.');
@@ -125,7 +122,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     }
 
     // Validation was successful: invalidate current refresh token and issue new tokens.
-    revokeToken( token );
+    tokenStore.revokeToken( token );
     const user = userStore.getUser(token.userId);
     const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user);
 
@@ -177,7 +174,7 @@ const handleLogout = async(req,res) => {
         try{
             const token = req.headers.authorization.split(' ')[1];
             decoded = validateAuthenticationToken(token,{ ignoreExpiration: true });
-            revokeToken(decoded);
+            tokenStore.revokeToken(decoded);
         }catch(err){
             errState = true;
         }
@@ -186,7 +183,7 @@ const handleLogout = async(req,res) => {
     if( req.cookies.refresh_token ){
         try{
             decoded = validateRefreshToken(req.cookies.refresh_token, { ignoreExpiration: true});
-            revokeToken(decoded);
+            tokenStore.revokeToken(decoded);
         }catch(err){
             errState = true;
         }
@@ -204,25 +201,12 @@ const handleLogout = async(req,res) => {
 };
 
 const handleTRLRequest = async(req,res) => {
-    res.status(200).json( { revoked_tokens: tokenRevocationList });
-}
-
-const revokeToken = (jwt) => {
-    tokenRevocationList.push(jwt.jti);
-    if(jwt.refresh === true ){
-        logger.debug(`refresh_token with identifier '${jwt.jti}' has been added to the revocation list.`);
-    }else{
-        logger.debug(`auth_token with identifier '${jwt.jti}' has been added to the revocation list.`);
-    }
-}
-
-const checkRevocation = (jwt) => {
-    return tokenRevocationList.includes(jwt.jti);
+    res.status(200).json( tokenStore.getTokenRevocationList() );
 }
 
 const validateRefreshToken = (token,verifyOpts) => {
     var options = {
-        algorithms: ["HS256"],
+        algorithms: ["ES512"],
         maxAge: "10m",
         ...verifyOpts
     };
@@ -230,14 +214,14 @@ const validateRefreshToken = (token,verifyOpts) => {
     // Validate JWT Refresh Token
     var decoded;
     try{
-        decoded = jwt.verify( token, tokenSigningSecret, options );
+        decoded = jwt.verify( token, tokenKeypair.verificationKO, options );
     }catch(err){
         logger.warn(`Refresh Failed: refresh_token failed validation. (${err})`);
         throw(err);
     }
 
     // Ensure JWT Refresh Token has not been previously revoked
-    if( checkRevocation(decoded) ){
+    if( tokenStore.isRevoked(decoded) ){
         const errMsg = `Refresh Failed: refresh_token was previously revoked (attempted re-use).`;
         logger.warn(errMsg);
         throw( {message: errMsg});
@@ -270,7 +254,7 @@ const validateAuthenticationToken = (token,verifyOpts) => {
     }
 
     // Ensure token has not been previously revoked
-    if( checkRevocation(decoded) ){
+    if( tokenStore.isRevoked(decoded) ){
         const errMsg = `Refresh Failed: auth_token was previously revoked (attempted re-use).`;
         logger.warn(errMsg);
         throw({message: errMsg});
@@ -305,5 +289,3 @@ exports.handleAuthenticationRefresh = handleAuthenticationRefresh;
 exports.handleRequestValidation = handleRequestValidation;
 exports.handleLogout = handleLogout;
 exports.handleTRLRequest = handleTRLRequest;
-exports.revokeToken = revokeToken;
-exports.checkRevocation = checkRevocation;
