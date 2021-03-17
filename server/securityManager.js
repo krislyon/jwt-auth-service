@@ -125,7 +125,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     return;
 }
 
-const handleRequstValidation = async(req,res,next) => {
+const handleRequestValidation = async(req,res,next) => {
     if( !req.headers.authorization ){
         logger.warn('Request Validation Failed: Unable to locate authorization header.');
         res.sendStatus(401);
@@ -282,7 +282,7 @@ const generateJWTTokenPair = (user) => {
 
 exports.handleAuthentication = handleAuthentication;
 exports.handleAuthenticationRefresh = handleAuthenticationRefresh;
-exports.handleRequestValidation = handleRequstValidation;
+exports.handleRequestValidation = handleRequestValidation;
 exports.handleLogout = handleLogout;
 exports.handleTRLRequest = handleTRLRequest;
 
