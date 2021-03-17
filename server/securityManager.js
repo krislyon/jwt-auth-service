@@ -2,16 +2,19 @@ const { logger } = require('./logManager');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userStore = require('./userStore');
+const fs = require('fs');
 
 logger.warn("*****************************************************************************");
 logger.warn("Demo implmentation requiring further hardening.  Do not deploy to production.");
-logger.warn("- Update from HS256 to Asymetric Algorithm");
 logger.warn("- Update self-signed SSL Certificates");
 logger.warn("- Implement database backed token revocation list");
 logger.warn("- Implement database backed user storage and roles.");
 logger.warn("- Enhance logging and track token status.");
 logger.warn("- Update CORS Configuration");
 logger.warn("- Update to use secure PRNG");
+logger.warn("- Implement nonce value in context");
+logger.warn("- Implement route to retrieve public key");
+logger.warn("- Support multiple verification keys");
 logger.warn("*****************************************************************************");
 
 // Initialize Store with default users
@@ -19,15 +22,17 @@ logger.warn("*******************************************************************
 userStore.createUser( 'lyonk', 'test', ['admin','user'] );
 userStore.createUser( 'test', 'test', ['user'] );
 
-// Create an in memory token revocation list
-// (INSECURE) - should be db backed, and timeboxed
-const tokenRevocationList = [];
+const tokenSigningKey = fs.readFileSync('keys/tokenkey_priv.pem');
+const tokenVerifyKey = fs.readFileSync('keys/tokenkey_pub.pem');
 
 // Generate a token signing secret
 // (INSECURE) - should be leveraging public key not a single secret.
+// const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
+// logger.debug('Token Signing Secret: ' + tokenSigningSecret );
 
-const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
-logger.debug('Token Signing Secret: ' + tokenSigningSecret );
+// Create an in memory token revocation list
+// (INSECURE) - should be db backed, and timeboxed
+const tokenRevocationList = [];
 
 const handleAuthentication = async(req,res) => {
     logger.debug('Authentication Request Received - beginning auth.');
@@ -235,7 +240,7 @@ const validateRefreshToken = (token,verifyOpts) => {
 
 const validateAuthenticationToken = (token,verifyOpts) => {
     var options = {
-        algorithms: ["HS256"],
+        algorithms: ["ES512"],
         maxAge: "5m",
         ...verifyOpts
     };
@@ -243,7 +248,7 @@ const validateAuthenticationToken = (token,verifyOpts) => {
     // Validate JWT Refresh Token
     var decoded;
     try{
-        decoded = jwt.verify( token, tokenSigningSecret, options );
+        decoded = jwt.verify( token, tokenVerifyKey, options );
     }catch(err){
         logger.warn(`Validation Failed: auth_token failed validation. (${err})`);
         throw(err);
@@ -261,21 +266,21 @@ const validateAuthenticationToken = (token,verifyOpts) => {
 
 const generateJWTTokenPair = (user) => {
     var authTokenOpts = {
-        algorithm: 'HS256',
+        algorithm: 'ES512',
         jwtid: crypto.randomBytes(16).toString('hex'),
         expiresIn: '1m',
         notBefore: '-1ms',
     }
     var refreshTokenOpts = {
-        algorithm: 'HS256',
+        algorithm: 'ES512',
         jwtid: crypto.randomBytes(16).toString('hex'),
         expiresIn: '2m',
         notBefore: '-1ms',
     }
     var authToken = { userId: user.userId, roles: user.roles };
     var refreshToken = { userId: user.userId, refresh: true };
-    const signedAuthToken = jwt.sign( authToken, tokenSigningSecret, authTokenOpts );
-    const signedRefreshToken = jwt.sign( refreshToken, tokenSigningSecret, refreshTokenOpts );
+    const signedAuthToken = jwt.sign( authToken, tokenSigningKey, authTokenOpts );
+    const signedRefreshToken = jwt.sign( refreshToken, tokenSigningKey, refreshTokenOpts );
 
     return { signedAuthToken, signedRefreshToken };
 }

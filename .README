@@ -1,0 +1,11 @@
+Generate Self Signed Certificates
+---------------------------------
+
+
+
+Generate JWT Signing Key
+------------------------
+openssl ecparam -genkey -name secp521r1 -noout -out tokenkey_priv.pem
+openssl ec -in tokenkey_priv.pem -pubout -out tokenkey_pub.pem
+
+
