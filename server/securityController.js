@@ -1,9 +1,7 @@
 const { logger } = require('./logManager');
-const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const userStore = require('./userStore');
 const tokenStore = require('./tokenStore');
-const fs = require('fs');
+const { initializeKeys, generateJWTTokenPair, validateRefreshToken, validateAuthenticationToken } = require('./tokenUtils');
 
 logger.warn("*****************************************************************************");
 logger.warn("Demo implmentation requiring further hardening.  Do not deploy to production.");
@@ -23,22 +21,6 @@ logger.warn("*******************************************************************
 userStore.createUser( 'lyonk', 'test', ['admin','user'] );
 userStore.createUser( 'test', 'test', ['user'] );
 
-
-const initializeKeys = () => {
-    var bufSigningKey = fs.readFileSync('keys/tokenkey_priv.pem');
-    var bufVerifyKey = fs.readFileSync('keys/tokenkey_pub.pem');
-    const signingKO = crypto.createPrivateKey({
-        key: bufSigningKey,
-        format: 'pem'
-    });
-    const verificationKO = crypto.createPublicKey({
-        key: bufVerifyKey,
-        format: 'pem'
-    });
-    bufSigningKey.fill('0');
-    bufVerifyKey.fill('0');
-    return { signingKO, verificationKO };
-}
 const tokenKeypair = initializeKeys();
 
 // Generate a token signing secret
@@ -60,9 +42,7 @@ const handleAuthentication = async(req,res) => {
         if( !req.body.pwHash ){
             // User was not found in our user store, return a dummy salt to prevent enumeration.
             logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning dummy salt.`);
-            const hash = crypto.createHash('sha256');
-            hash.update( 'DUMMYSALT' + req.body.userId );
-            res.status(200).json( { salt: hash.digest().toString('hex') } );
+            res.status(200).json( userStore.generateDummySaltValue( req.body.userId ) );
             return;
         }else{
             logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning 401-Unauthorized.`);
@@ -88,7 +68,7 @@ const handleAuthentication = async(req,res) => {
 
     // User is now Authenticated.
     logger.info(`User '${user.userId}' Authenticated Successfully, issuing auth_token/refresh_token.`);
-    const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user);
+    const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user,tokenKeypair.signingKO);
 
     // Set a client-side cookie with the refresh token
     var cookieOpts = {
@@ -115,7 +95,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     // Validate JWT Refresh Token
     var token;
     try{
-        token = validateRefreshToken( req.cookies.refresh_token );
+        token = validateRefreshToken(req.cookies.refresh_token,tokenKeypair.verificationKO);
     }catch(err){
         res.sendStatus(401);
         return;
@@ -124,7 +104,7 @@ const handleAuthenticationRefresh = async(req,res) => {
     // Validation was successful: invalidate current refresh token and issue new tokens.
     tokenStore.revokeToken( token );
     const user = userStore.getUser(token.userId);
-    const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user);
+    const {signedAuthToken, signedRefreshToken} = generateJWTTokenPair(user,tokenKeypair.signingKO);
 
     // Update client-side cookie with new refresh token, and return result
     var cookieOpts = {
@@ -150,7 +130,7 @@ const handleRequestValidation = async(req,res,next) => {
     }
     const token = req.headers.authorization.split(' ')[1];
     try{
-        const decoded = validateAuthenticationToken(token);
+        const decoded = validateAuthenticationToken(token,tokenKeypair.verificationKO);
         const user = userStore.getUser(decoded.userId);
         if( !user ){
             logger.warn(`Request Validation Failed: User '${decoded.userId}' does not exist.`);
@@ -173,7 +153,7 @@ const handleLogout = async(req,res) => {
     if( req.headers.authorization ){
         try{
             const token = req.headers.authorization.split(' ')[1];
-            decoded = validateAuthenticationToken(token,{ ignoreExpiration: true });
+            decoded = validateAuthenticationToken(token,tokenKeypair.verificationKO,{ ignoreExpiration: true });
             tokenStore.revokeToken(decoded);
         }catch(err){
             errState = true;
@@ -182,7 +162,7 @@ const handleLogout = async(req,res) => {
 
     if( req.cookies.refresh_token ){
         try{
-            decoded = validateRefreshToken(req.cookies.refresh_token, { ignoreExpiration: true});
+            decoded = validateRefreshToken(req.cookies.refresh_token,tokenKeypair.verificationKO,{ ignoreExpiration: true});
             tokenStore.revokeToken(decoded);
         }catch(err){
             errState = true;
@@ -202,86 +182,6 @@ const handleLogout = async(req,res) => {
 
 const handleTRLRequest = async(req,res) => {
     res.status(200).json( tokenStore.getTokenRevocationList() );
-}
-
-const validateRefreshToken = (token,verifyOpts) => {
-    var options = {
-        algorithms: ["ES512"],
-        maxAge: "10m",
-        ...verifyOpts
-    };
-
-    // Validate JWT Refresh Token
-    var decoded;
-    try{
-        decoded = jwt.verify( token, tokenKeypair.verificationKO, options );
-    }catch(err){
-        logger.warn(`Refresh Failed: refresh_token failed validation. (${err})`);
-        throw(err);
-    }
-
-    // Ensure JWT Refresh Token has not been previously revoked
-    if( tokenStore.isRevoked(decoded) ){
-        const errMsg = `Refresh Failed: refresh_token was previously revoked (attempted re-use).`;
-        logger.warn(errMsg);
-        throw( {message: errMsg});
-    }
-
-    // Ensure Token is a refresh token
-    if( decoded.refresh != true ){
-        const errMsg = `Refresh Failed: refresh_token validated but was not a refresh token. (attempted subversion).`;
-        logger.warn(errMsg)
-        throw({ message: errMsg });
-    }
-    logger.debug('Refresh token validated successfully.');
-    return decoded;
-}
-
-const validateAuthenticationToken = (token,verifyOpts) => {
-    var options = {
-        algorithms: ["ES512"],
-        maxAge: "5m",
-        ...verifyOpts
-    };
-
-    // Validate JWT Refresh Token
-    var decoded;
-    try{
-        decoded = jwt.verify( token, tokenKeypair.verificationKO, options );
-    }catch(err){
-        logger.warn(`Validation Failed: auth_token failed validation. (${err})`);
-        throw(err);
-    }
-
-    // Ensure token has not been previously revoked
-    if( tokenStore.isRevoked(decoded) ){
-        const errMsg = `Refresh Failed: auth_token was previously revoked (attempted re-use).`;
-        logger.warn(errMsg);
-        throw({message: errMsg});
-    }
-    logger.debug('Authentication token validated successfully');
-    return decoded;
-}
-
-const generateJWTTokenPair = (user) => {
-    var authTokenOpts = {
-        algorithm: 'ES512',
-        jwtid: crypto.randomBytes(16).toString('hex'),
-        expiresIn: '1m',
-        notBefore: '-1ms',
-    }
-    var refreshTokenOpts = {
-        algorithm: 'ES512',
-        jwtid: crypto.randomBytes(16).toString('hex'),
-        expiresIn: '2m',
-        notBefore: '-1ms',
-    }
-    var authToken = { userId: user.userId, roles: user.roles };
-    var refreshToken = { userId: user.userId, refresh: true };
-    const signedAuthToken = jwt.sign( authToken, tokenKeypair.signingKO, authTokenOpts );
-    const signedRefreshToken = jwt.sign( refreshToken, tokenKeypair.signingKO, refreshTokenOpts );
-
-    return { signedAuthToken, signedRefreshToken };
 }
 
 exports.handleAuthentication = handleAuthentication;

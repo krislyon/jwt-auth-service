@@ -5,7 +5,7 @@ const figlet = require('figlet');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest } = require('./securityManager.js');
+const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest } = require('./securityController.js');
 const { getPublicResource, getProtectedResource } = require('./resourceController.js');
 
 const app = express();

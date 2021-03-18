@@ -25,10 +25,17 @@ const createUser = (userId,password,roles) => {
     return newUser;
 };
 
+const generateDummySaltValue = ( userId ) => {
+    const hash = crypto.createHash('sha256');
+    hash.update( 'DUMMYSALT' + userId );
+    return { salt: hash.digest().toString('hex') };
+};
+
 const getUser = (userId) => {
     return users[userId];
 };
 
 exports.createUser = createUser;
+exports.generateDummySaltValue = generateDummySaltValue;
 exports.getUser = getUser;
 
