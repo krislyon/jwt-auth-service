@@ -2,6 +2,8 @@ const { logger } = require('./logManager');
 const userStore = require('./userStore');
 const tokenStore = require('./tokenStore');
 const { initializeKeys, generateJWTTokenPair, validateRefreshToken, validateAuthenticationToken } = require('./tokenUtils');
+const { generateAuthChallenge, validateChallengeResponse } = require('./authUtils');
+
 
 logger.warn("*****************************************************************************");
 logger.warn("Demo implmentation requiring further hardening.  Do not deploy to production.");
@@ -16,52 +18,59 @@ logger.warn("- Implement route to retrieve public key");
 logger.warn("- Support multiple verification keys");
 logger.warn("*****************************************************************************");
 
-// Initialize Store with default users
 // (INSECURE) - should be db backed, and a real user store
+// Initialize Store with default users
 userStore.createUser( 'lyonk', 'test', ['admin','user'] );
 userStore.createUser( 'test', 'test', ['user'] );
 
+// Load token signing keys
 const tokenKeypair = initializeKeys();
 
-// Generate a token signing secret
-// (INSECURE) - should be leveraging public key not a single secret.
-// const tokenSigningSecret = crypto.randomBytes(32).toString('hex');
-// logger.debug('Token Signing Secret: ' + tokenSigningSecret );
-
 const handleAuthentication = async(req,res) => {
-    logger.debug('Authentication Request Received - beginning auth.');
-
+    // Validate Authentication Request Data
     if( !req.body.userId ){
         logger.warn('Authentication Failed: req.body.userId was not found');
         res.status(500).json( { message: "userId was not found in the request body." } );
         return;
     }
-
-    const user = userStore.getUser(req.body.userId);
-    if( !user ){
-        if( !req.body.pwHash ){
-            // User was not found in our user store, return a dummy salt to prevent enumeration.
-            logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning dummy salt.`);
-            res.status(200).json( userStore.generateDummySaltValue( req.body.userId ) );
-            return;
-        }else{
-            logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning 401-Unauthorized.`);
-            // User still isn't found in the store, but they've now responded to the dummy hash
-            // send them an unauthorized request, as if it was a bad password.
-            res.sendStatus(401);
-            return;
-        }
-    }
-
     if( !req.body.pwHash ){
-        logger.debug('Authentication Initiated: Returning Salt');
-        res.status(200).json( { salt: user.pwSalt } );
+        return handleAuthPhase1(req,res);
+    }else{
+        return handleAuthPhase2(req,res);
+    }
+}
+
+const handleAuthPhase1 = async(req,res) => {
+    logger.debug('Authentication Request Received - Returning Phase 1 Auth Challenge');
+    res.status(200).json( generateAuthChallenge(req.body.userId, tokenKeypair.signingKO ) );
+    return;
+}
+
+const handleAuthPhase2 = async(req,res) => {
+    logger.debug('Authentication Request Received - Beginning Auth Phase 2');
+    const user = userStore.getUser(req.body.userId);
+
+    // Validate Authentication Request Data
+    if( !req.body.sig ){
+        logger.warn('Authentication Failed: Incorrect authentication response. ( req.body.sig missing )');
+        res.status(500).json({ message: "sig was not found in the request body"});
+        return;
+    }
+    if( !req.body.nonce ){
+        logger.warn('Authentication Failed: Incorrect authentication response. ( req.body.nonce missing )');
+        res.status(500).json({ message: "nonce was not found in the request body"});
+        return;
+    }
+    if( !user ){
+        logger.warn(`Authentication Failed: User ${req.body.userId} does not exist, returning 401-Unauthorized.`);
+        // User wasn't found in the store, but they've now responded to the dummy hash
+        // send them an unauthorized request, as if it was a bad password.
+        res.sendStatus(401);
         return;
     }
 
-    // Validate password hash
-    if( req.body.pwHash !== user.pwHash ){
-        logger.warn('Authentication Failed: password hashes did not match.')
+    // Validate Auth Challenge Response
+    if( !validateChallengeResponse( req, tokenKeypair.verificationKO ) ){
         res.sendStatus(401);
         return;
     }

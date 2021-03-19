@@ -1,7 +1,7 @@
 const { logger } = require('./logManager');
 
-// Create an in memory token revocation list
 // (INSECURE) - should be db backed, and timeboxed
+// Create an in memory token revocation list
 //
 // TODO:
 // - Keep a record of currently valid tokens

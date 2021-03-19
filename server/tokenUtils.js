@@ -4,6 +4,11 @@ const crypto = require('crypto');
 const fs = require('fs');
 const tokenStore = require('./tokenStore');
 
+const tokenSigningAlgorithm = "ES512"
+const authTokenExpiry = '1m';
+const refreshTokenExpiry = '2m';
+
+
 const initializeKeys = () => {
     var bufSigningKey = fs.readFileSync('keys/tokenkey_priv.pem');
     var bufVerifyKey = fs.readFileSync('keys/tokenkey_pub.pem');
@@ -22,15 +27,15 @@ const initializeKeys = () => {
 
 const generateJWTTokenPair = (user, signingKO ) => {
     var authTokenOpts = {
-        algorithm: 'ES512',
+        algorithm: tokenSigningAlgorithm,
         jwtid: crypto.randomBytes(16).toString('hex'),
-        expiresIn: '1m',
+        expiresIn: authTokenExpiry,
         notBefore: '-1ms',
     }
     var refreshTokenOpts = {
-        algorithm: 'ES512',
+        algorithm: tokenSigningAlgorithm,
         jwtid: crypto.randomBytes(16).toString('hex'),
-        expiresIn: '2m',
+        expiresIn: refreshTokenExpiry,
         notBefore: '-1ms',
     }
     var authToken = { userId: user.userId, roles: user.roles };
@@ -43,8 +48,8 @@ const generateJWTTokenPair = (user, signingKO ) => {
 
 const validateRefreshToken = (token,verificationKO,verifyOpts) => {
     var options = {
-        algorithms: ["ES512"],
-        maxAge: "10m",
+        algorithms: [ tokenSigningAlgorithm ],
+        maxAge: refreshTokenExpiry,
         ...verifyOpts
     };
 
@@ -76,8 +81,8 @@ const validateRefreshToken = (token,verificationKO,verifyOpts) => {
 
 const validateAuthenticationToken = (token,verificationKO,verifyOpts) => {
     var options = {
-        algorithms: ["ES512"],
-        maxAge: "5m",
+        algorithms: [ tokenSigningAlgorithm ],
+        maxAge: authTokenExpiry,
         ...verifyOpts
     };
 
