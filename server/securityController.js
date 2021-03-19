@@ -13,8 +13,6 @@ logger.warn("- Implement database backed user storage and roles.");
 logger.warn("- Enhance logging and track token status.");
 logger.warn("- Update CORS Configuration");
 logger.warn("- Update to use secure PRNG");
-logger.warn("- Implement nonce value in context");
-logger.warn("- Implement route to retrieve public key");
 logger.warn("- Support multiple verification keys");
 logger.warn("*****************************************************************************");
 
@@ -193,8 +191,18 @@ const handleTRLRequest = async(req,res) => {
     res.status(200).json( tokenStore.getTokenRevocationList() );
 }
 
+const handleTokenVerificationKeyRequest = async(req,res) => {
+    res.status(200).json({
+        public_key: tokenKeypair.verificationKO.export({ type: 'spki', format: 'pem'}),
+        key_type: tokenKeypair.verificationKO.asymmetricKeyType,
+        encoding: 'spki',
+        format: 'pem'
+    });
+}
+
 exports.handleAuthentication = handleAuthentication;
 exports.handleAuthenticationRefresh = handleAuthenticationRefresh;
 exports.handleRequestValidation = handleRequestValidation;
 exports.handleLogout = handleLogout;
 exports.handleTRLRequest = handleTRLRequest;
+exports.handleTokenVerificationKeyRequest = handleTokenVerificationKeyRequest;

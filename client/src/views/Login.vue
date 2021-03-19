@@ -34,11 +34,17 @@ export default {
           return
         }
 
-        // Hash password and send pass for user to /login
-        const hash = crypto.createHash('sha256')
+        // Hash password
+        var hash = crypto.createHash('sha256')
         hash.update(res.data.salt + password.value)
-        const pwHash = hash.digest().toString('hex')
-        res = await axios.post('/login', { pwHash, userId })
+        var pwHash = hash.digest().toString('hex')
+
+        // Hash nonce and send for login
+        hash = crypto.createHash('sha256');
+        hash.update( res.data.nonce + pwHash );
+        pwHash = hash.digest().toString('hex');
+
+        res = await axios.post('/login', { pwHash, userId, nonce: res.data.nonce, sig: res.data.sig })
 
         if (res.status != 200) {
           console.log('Failed to log in.')

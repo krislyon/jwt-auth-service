@@ -5,7 +5,7 @@ const figlet = require('figlet');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest } = require('./securityController.js');
+const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest, handleTokenVerificationKeyRequest } = require('./securityController.js');
 const { getPublicResource, getProtectedResource } = require('./resourceController.js');
 
 const app = express();
@@ -55,7 +55,10 @@ const httpLogger = (request,response,next) => {
 app.post('/login', handleAuthentication );
 app.post('/refresh', handleAuthenticationRefresh );
 app.post('/logout', handleLogout );
+
+// Resource Server support
 app.get('/trl', handleTRLRequest );
+app.get('/tokenVerificationKey', handleTokenVerificationKeyRequest );
 
 // Sample Resource Endpoints
 app.get('/', getPublicResource );

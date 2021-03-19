@@ -2,6 +2,8 @@ const { logger } = require('./logManager');
 const userStore = require('./userStore');
 const crypto = require('crypto');
 
+const maxAuthDelta = 10000;
+
 const generateAuthChallenge = (userId, signingKO) => {
     var user = userStore.getUser(userId);
 
@@ -42,7 +44,7 @@ const validateChallengeResponse = (req, verificationKO) => {
 
     // Validate timestamp is within window.
     const delta = Date.now() - req.body.nonce;
-    if( delta < 0 || delta > 10000){
+    if( delta < 0 || delta > maxAuthDelta ){
         logger.warn(`Authentication Failed: Stale auth challenge (delta == ${delta})`);
         return false;
     }
