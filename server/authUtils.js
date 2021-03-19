@@ -15,6 +15,7 @@ const generateAuthChallenge = (userId, signingKO) => {
     const timestamp = Date.now().toString();
     const sign = crypto.createSign('SHA256');
     sign.update( timestamp );
+    sign.update( user.userId );
     sign.end();
     const nonceSig = sign.sign( signingKO, 'hex' );
 
@@ -32,9 +33,17 @@ const validateChallengeResponse = (req, verificationKO) => {
     // Validate nonce signature.
     const verify = crypto.createVerify('SHA256');
     verify.update( req.body.nonce );
+    verify.update( user.userId );
     verify.end();
     if( !verify.verify( verificationKO , req.body.sig, 'hex' ) ){
         logger.warn('Authentication Failed: returned nonce did not match signature')
+        return false;
+    }
+
+    // Validate timestamp is within window.
+    const delta = Date.now() - req.body.nonce;
+    if( delta < 0 || delta > 10000){
+        logger.warn(`Authentication Failed: Stale auth challenge (delta == ${delta})`);
         return false;
     }
 
