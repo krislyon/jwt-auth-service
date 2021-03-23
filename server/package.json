@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "app.js",
 	"scripts": {
-		"test": "mocha",
-		"livetest": "npx newman run --insecure postman/auth-server-tests.postman_collection.json",
+		"test": "mocha test/mocha",
+		"livetest": "npx newman run --insecure test/postman/auth-server-tests.postman_collection.json",
 		"start": "node app.js",
 		"debug": "node --inspect app.js",
 		"gencerts": "openssl req -subj '/O=Test Cert./C=CA/CN=localhost.com' -nodes -new -x509 -keyout certs/server.key -out certs/server.cert",

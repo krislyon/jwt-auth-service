@@ -1,7 +1,7 @@
 const assert = require('assert');
 const crypto = require('crypto')
 
-const userStore = require('../userStore');
+const userStore = require('../../userStore');
 
 console.log(module);
 
