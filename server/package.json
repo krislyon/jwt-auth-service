@@ -1,29 +1,33 @@
 {
-  "name": "secjwt-service",
-  "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
-  "scripts": {
-    "test": "mocha",
-    "livetest": "npx newman run --insecure postman/auth-server-tests.postman_collection.json",
-    "start": "node app.js",
-    "debug": "node --inspect app.js"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "body-parser": "^1.19.0",
-    "cookie-parser": "^1.4.5",
-    "cors": "^2.8.5",
-    "crypto": "^1.0.1",
-    "express": "^4.17.1",
-    "figlet": "^1.5.0",
-    "jsonwebtoken": "^8.5.1",
-    "newman": "^5.2.2",
-    "pem": "^1.14.4",
-    "winston": "^3.3.3"
-  },
-  "devDependencies": {
-    "mocha": "^8.3.0"
-  }
+	"name": "secjwt-service",
+	"version": "1.0.0",
+	"description": "",
+	"main": "app.js",
+	"scripts": {
+		"test": "mocha",
+		"livetest": "npx newman run --insecure postman/auth-server-tests.postman_collection.json",
+		"start": "node app.js",
+		"debug": "node --inspect app.js",
+		"gencerts": "openssl req -subj '/O=Test Cert./C=CA/CN=localhost.com' -nodes -new -x509 -keyout certs/server.key -out certs/server.cert",
+		"genkeys": "npm run genpriv & npm run genpub",
+		"genpriv": "openssl ecparam -genkey -name secp521r1 -noout -out keys/tokenkey_priv.pem",
+		"genpub": "openssl ec -in keys/tokenkey_priv.pem -pubout -out keys/tokenkey_pub.pem"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"body-parser": "^1.19.0",
+		"cookie-parser": "^1.4.5",
+		"cors": "^2.8.5",
+		"crypto": "^1.0.1",
+		"express": "^4.17.1",
+		"figlet": "^1.5.0",
+		"jsonwebtoken": "^8.5.1",
+		"newman": "^5.2.2",
+		"pem": "^1.14.4",
+		"winston": "^3.3.3"
+	},
+	"devDependencies": {
+		"mocha": "^8.3.0"
+	}
 }
