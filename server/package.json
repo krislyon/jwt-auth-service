@@ -23,7 +23,7 @@
 		"express": "^4.17.1",
 		"figlet": "^1.5.0",
 		"jsonwebtoken": "^8.5.1",
-		"newman": "^5.2.2",
+		"newman": "^5.1.2",
 		"pem": "^1.14.4",
 		"winston": "^3.3.3"
 	},

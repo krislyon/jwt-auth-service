@@ -56,14 +56,23 @@
 							"    pm.expect( responseJson.salt ).to.exist;",
 							"});",
 							"",
-							"pm.test( \"Store password hash\", () => {",
+							"pm.test( \"Store challenge response hash\", () => {",
 							"    const responseJson = pm.response.json();",
 							"    pm.expect( responseJson.salt).to.exist;",
 							"    if( responseJson.salt ){",
 							"        var password = pm.collectionVariables.get(\"test_password\");",
 							"        var hash = CryptoJS.enc.Hex.stringify( CryptoJS.SHA256( responseJson.salt + password ) );",
-							"        pm.collectionVariables.set(\"password_hash\", hash );",
-							"        console.log(\"Calculated PW Hash: \" + hash );",
+							"        hash = CryptoJS.enc.Hex.stringify( CryptoJS.SHA256( responseJson.nonce + hash ));",
+							"",
+							"        const auth_challenge_response = {",
+							"            userId : pm.request.body.userId,",
+							"            nonce : responseJson.nonce,",
+							"            sig : responseJson.sig,",
+							"            pwHash : hash",
+							"        };",
+							"        pm.collectionVariables.set(\"auth_challenge_nonce\", responseJson.nonce );",
+							"        pm.collectionVariables.set(\"auth_challenge_sig\", responseJson.sig );",
+							"        pm.collectionVariables.set(\"auth_challenge_pwHash\", hash );",
 							"    }",
 							"});",
 							"",
@@ -160,7 +169,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"pwHash\" : \"{{password_hash}}\"\n}",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\"        ,\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -343,7 +352,93 @@
 			"response": []
 		},
 		{
-			"name": "Login P2 - failure",
+			"name": "Login P2 - Test Failure - missing sig",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Error Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - missing nonce",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Error Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\",\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - failed hash validation",
 			"event": [
 				{
 					"listen": "test",
@@ -371,7 +466,50 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"userId\" : \"lyonk\",\n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\",    \n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - failed sig validation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}BREAK_THE_SIG\",\n    \"sig\" : \"{{auth_challenge_sig}}\"        ,\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
@@ -392,9 +530,9 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test( \"Unauthorized Response from Server\", () => {",
-							"    pm.expect(pm.response.code).to.equal(401);",
-							"});"
+							"// pm.test( \"Unauthorized Response from Server\", () => {",
+							"//     pm.expect(pm.response.code).to.equal(401);",
+							"// });"
 						],
 						"type": "text/javascript"
 					}
@@ -410,6 +548,36 @@
 					],
 					"path": [
 						"trl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Token Verification Key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// pm.test( \"Unauthorized Response from Server\", () => {",
+							"//     pm.expect(pm.response.code).to.equal(401);",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/tokenVerificationKey",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"tokenVerificationKey"
 					]
 				}
 			},
@@ -498,6 +666,22 @@
 		},
 		{
 			"key": "password_hash",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_response",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_nonce",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_sig",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_pwHash",
 			"value": ""
 		}
 	]
