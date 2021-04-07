@@ -1,21 +1,18 @@
 {
-	"name": "secjwt-service",
+	"name": "jwt-resource-service",
 	"version": "1.0.0",
 	"description": "",
 	"main": "app.js",
 	"scripts": {
 		"test": "mocha test/mocha",
-		"livetest": "npx newman run --insecure test/postman/auth-server-tests.postman_collection.json",
 		"start": "node app.js",
 		"debug": "node --inspect app.js",
-		"gencerts": "openssl req -subj '/O=Test Cert./C=CA/CN=localhost.com' -nodes -new -x509 -keyout certs/server.key -out certs/server.cert",
-		"genkeys": "npm run genpriv & npm run genpub",
-		"genpriv": "openssl ecparam -genkey -name secp521r1 -noout -out keys/tokenkey_priv.pem",
-		"genpub": "openssl ec -in keys/tokenkey_priv.pem -pubout -out keys/tokenkey_pub.pem"
+		"gencerts": "openssl req -subj '/O=Test Cert./C=CA/CN=localhost.com' -nodes -new -x509 -keyout certs/server.key -out certs/server.cert"
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"axios": "^0.21.1",
 		"body-parser": "^1.19.0",
 		"cookie-parser": "^1.4.5",
 		"cors": "^2.8.5",

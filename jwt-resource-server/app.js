@@ -5,11 +5,11 @@ const figlet = require('figlet');
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { handleAuthentication, handleAuthenticationRefresh, handleRequestValidation, handleLogout, handleTRLRequest, handleTokenVerificationKeyRequest } = require('./securityController.js');
+const { handleRequestValidation } = require('./resourceSecurityController.js');
 const { getPublicResource, getProtectedResource } = require('./resourceController.js');
 
 const app = express();
-const port = 3000;
+const port = 3100;
 
 // Handle CORS preflight
 app.use(cors({
@@ -50,22 +50,10 @@ const httpLogger = (request,response,next) => {
     );
 }
 
-
-// Login State Management
-app.post('/login', handleAuthentication );
-app.post('/refresh', handleAuthenticationRefresh );
-app.post('/logout', handleLogout );
-
-// Resource Server support
-app.get('/trl', handleTRLRequest );
-app.get('/tokenVerificationKey', handleTokenVerificationKeyRequest );
-
 // Sample Resource Endpoints
 app.get('/', getPublicResource );
 app.get('/public', getPublicResource );
 app.get('/protected', handleRequestValidation, getProtectedResource );
-
-
 
 //Start up express as configured above
 const certificates = {
@@ -74,7 +62,7 @@ const certificates = {
 }
 https.createServer(certificates,app).listen(port, () => {
 
-      figlet('-JWT-Auth-Service-', function(err, data) {
+      figlet('-Resource-Service-', function(err, data) {
         if (err) {
             console.log('Something went wrong...');
             console.dir(err);
@@ -84,6 +72,6 @@ https.createServer(certificates,app).listen(port, () => {
       });
 
      logger.info('******************************************************');
-     logger.info(`JWT-Auth-Service listening at https://localhost:${port}`);
+     logger.info(`Resource-Service listening at https://localhost:${port}`);
      logger.info('******************************************************');
 });
