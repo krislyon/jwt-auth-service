@@ -5,8 +5,8 @@ const fs = require('fs');
 const tokenStore = require('./tokenStore');
 
 const tokenSigningAlgorithm = "ES512"
-const authTokenExpiry = '1m';
-const refreshTokenExpiry = '2m';
+const authTokenExpiry = '30m';
+const refreshTokenExpiry = '60m';
 
 
 const initializeKeys = () => {

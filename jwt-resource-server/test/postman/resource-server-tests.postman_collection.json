@@ -1,0 +1,688 @@
+{
+	"info": {
+		"_postman_id": "6e0d9b73-7ffd-4179-ba00-039179161975",
+		"name": "auth-server-tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Request Public Resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.message ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/public",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"public"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P1",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"salt field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.salt ).to.exist;",
+							"});",
+							"",
+							"pm.test( \"Store challenge response hash\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.salt).to.exist;",
+							"    if( responseJson.salt ){",
+							"        var password = pm.collectionVariables.get(\"test_password\");",
+							"        var hash = CryptoJS.enc.Hex.stringify( CryptoJS.SHA256( responseJson.salt + password ) );",
+							"        hash = CryptoJS.enc.Hex.stringify( CryptoJS.SHA256( responseJson.nonce + hash ));",
+							"",
+							"        const auth_challenge_response = {",
+							"            userId : pm.request.body.userId,",
+							"            nonce : responseJson.nonce,",
+							"            sig : responseJson.sig,",
+							"            pwHash : hash",
+							"        };",
+							"        pm.collectionVariables.set(\"auth_challenge_nonce\", responseJson.nonce );",
+							"        pm.collectionVariables.set(\"auth_challenge_sig\", responseJson.sig );",
+							"        pm.collectionVariables.set(\"auth_challenge_pwHash\", hash );",
+							"    }",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"auth_token field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"});",
+							"",
+							"pm.test( \"refresh_token is propertly returned as cookie\", () => {",
+							"    const refresh_cookie = pm.response.headers.get(\"Set-Cookie\");",
+							"    pm.expect( refresh_cookie ).to.exist;",
+							"",
+							"    // Parse the cookie and validate the parameters are as expected.",
+							"    const cookieObj = Object.fromEntries( refresh_cookie.split('; ').map(c => {",
+							"        const [ key, ...v ] = c.split('=');",
+							"        return [ key, v.join('=') ];",
+							"    }));",
+							"",
+							"    // Validate the parameters of the cookie",
+							"    pm.expect( cookieObj.HttpOnly ).to.eq(\"\");",
+							"    pm.expect( cookieObj.Secure ).to.eq(\"\");",
+							"    pm.expect( cookieObj.SameSite ).to.eq(\"None\");",
+							"",
+							"});",
+							"",
+							"pm.test( \"Store Auth Token\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"    if( responseJson.auth_token ){",
+							"        pm.collectionVariables.set(\"jwt_auth_token\", responseJson.auth_token );",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\"        ,\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Protected Resource",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.message ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/protected",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"protected"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Token Refresh - Success",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"auth_token field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"});",
+							"",
+							"pm.test( \"Store Auth Token\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.auth_token).to.exist;",
+							"    if( responseJson.auth_token ){",
+							"        pm.collectionVariables.set(\"jwt_auth_token\", responseJson.auth_token );",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/refresh",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Revocation List",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful GET request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"message field is properly returned in json body.\", () => {",
+							"    const responseJson = pm.response.json();",
+							"    pm.expect( responseJson.revoked_tokens ).to.exist;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/trl",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"trl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Successful POST request\", () => {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test( \"Clear Auth Token\", () => {",
+							"    pm.collectionVariables.set(\"jwt_auth_token\", \"\" );",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwt_auth_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/logout",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - missing sig",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Error Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - missing nonce",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Error Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(500);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\",\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - failed hash validation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}\",\n    \"sig\" : \"{{auth_challenge_sig}}\",    \n    \"pwHash\" : \"ec171c6ddbe4d48e077521ae1cdcec09ef3813ba059ba29c0fd2b6d2104c6c4e\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login P2 - Test Failure - failed sig validation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\n    \"userId\" : \"{{test_user}}\",\n    \"nonce\" : \"{{auth_challenge_nonce}}BREAK_THE_SIG\",\n    \"sig\" : \"{{auth_challenge_sig}}\"        ,\n    \"pwHash\" : \"{{auth_challenge_pwHash}}\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Revocation List - No Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// pm.test( \"Unauthorized Response from Server\", () => {",
+							"//     pm.expect(pm.response.code).to.equal(401);",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/trl",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"trl"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Token Verification Key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// pm.test( \"Unauthorized Response from Server\", () => {",
+							"//     pm.expect(pm.response.code).to.equal(401);",
+							"// });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/tokenVerificationKey",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"tokenVerificationKey"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Request Protected Resource - No Auth Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test( \"Unauthorized Response from Server\", () => {",
+							"    pm.expect(pm.response.code).to.equal(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/protected",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"protected"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "jwt_auth_token",
+			"value": ""
+		},
+		{
+			"key": "base_url",
+			"value": "https://localhost:3000"
+		},
+		{
+			"key": "test_user",
+			"value": "test"
+		},
+		{
+			"key": "test_password",
+			"value": "test"
+		},
+		{
+			"key": "password_hash",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_response",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_nonce",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_sig",
+			"value": ""
+		},
+		{
+			"key": "auth_challenge_pwHash",
+			"value": ""
+		}
+	]
+}

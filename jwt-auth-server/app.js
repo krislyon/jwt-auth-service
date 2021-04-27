@@ -20,35 +20,35 @@ app.use(cors({
 app.use(cookieParser());         // Parse Cookies onto request obj
 app.use(express.json());         // Parse JSON content onto request obj
 
-const httpLogger = (request,response,next) => {
-    const requestStart = Date.now();
-    const { rawHeaders, httpVersion, method, socket, url, body, cookies } = request;
-    const { remoteAddress, remoteFamily } = socket;
-    next();
-    const { statusCode, statusMessage } = response;
-    const headers = response.getHeaders();
+// const httpLogger = (request,response,next) => {
+//     const requestStart = Date.now();
+//     const { rawHeaders, httpVersion, method, socket, url, body, cookies } = request;
+//     const { remoteAddress, remoteFamily } = socket;
+//     next();
+//     const { statusCode, statusMessage } = response;
+//     const headers = response.getHeaders();
 
-    logger.info(
-      JSON.stringify({
-        timestamp: Date.now(),
-        processingTime: Date.now() - requestStart,
-        rawHeaders,
-        cookies,
-        //body,
-        //errorMessage,
-        //httpVersion,
-        method,
-        remoteAddress,
-        remoteFamily,
-        url,
-        response: {
-          statusCode,
-          statusMessage,
-          headers
-        }
-      })
-    );
-}
+//     logger.info(
+//       JSON.stringify({
+//         timestamp: Date.now(),
+//         processingTime: Date.now() - requestStart,
+//         rawHeaders,
+//         cookies,
+//         //body,
+//         //errorMessage,
+//         //httpVersion,
+//         method,
+//         remoteAddress,
+//         remoteFamily,
+//         url,
+//         response: {
+//           statusCode,
+//           statusMessage,
+//           headers
+//         }
+//       })
+//     );
+// }
 
 
 // Login State Management
@@ -64,8 +64,6 @@ app.get('/tokenVerificationKey', handleTokenVerificationKeyRequest );
 app.get('/', getPublicResource );
 app.get('/public', getPublicResource );
 app.get('/protected', handleRequestValidation, getProtectedResource );
-
-
 
 //Start up express as configured above
 const certificates = {
