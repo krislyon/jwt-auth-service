@@ -14,7 +14,7 @@
 <script>
 import { ref } from 'vue'
 import crypto from 'crypto'
-import axios from '../composables/axiosClient'
+import axios from '../composables/authClient'
 import { useUser } from '../composables/useUser'
 import { useRouter } from 'vue-router'
 

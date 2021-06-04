@@ -52,6 +52,8 @@ app.use(express.json());         // Parse JSON content onto request obj
 
 
 // Login State Management
+app.post('/preauth', handleAuthentication );
+app.post('/auth', handleAuthentication );
 app.post('/login', handleAuthentication );
 app.post('/refresh', handleAuthenticationRefresh );
 app.post('/logout', handleLogout );

@@ -13,7 +13,7 @@
 <script>
 // @ is an alias to /src
 import { ref, computed } from 'vue'
-import axios from '../composables/axiosClient'
+import axios from '../composables/resourceClient'
 import { useUser } from '../composables/useUser'
 
 export default {

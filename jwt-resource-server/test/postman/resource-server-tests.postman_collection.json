@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "6e0d9b73-7ffd-4179-ba00-039179161975",
-		"name": "auth-server-tests",
+		"name": "resource-server-tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -30,12 +30,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/public",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"public"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "public" ]
 				}
 			},
 			"response": []
@@ -100,12 +96,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -178,12 +170,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -213,12 +201,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/protected",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"protected"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "protected" ]
 				}
 			},
 			"response": []
@@ -256,12 +240,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/refresh",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"refresh"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "refresh" ]
 				}
 			},
 			"response": []
@@ -291,12 +271,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/trl",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"trl"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "trl" ]
 				}
 			},
 			"response": []
@@ -341,12 +317,8 @@
 				],
 				"url": {
 					"raw": "{{base_url}}/logout",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"logout"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "logout" ]
 				}
 			},
 			"response": []
@@ -384,12 +356,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -427,12 +395,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -470,12 +434,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -513,12 +473,8 @@
 				},
 				"url": {
 					"raw": "{{base_url}}/login",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"login"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "login" ]
 				}
 			},
 			"response": []
@@ -543,12 +499,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/trl",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"trl"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "trl" ]
 				}
 			},
 			"response": []
@@ -573,12 +525,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/tokenVerificationKey",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"tokenVerificationKey"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "tokenVerificationKey" ]
 				}
 			},
 			"response": []
@@ -606,12 +554,8 @@
 				"header": [],
 				"url": {
 					"raw": "{{base_url}}/protected",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"protected"
-					]
+					"host": [ "{{base_url}}" ],
+					"path": [ "protected" ]
 				}
 			},
 			"response": []
@@ -632,18 +576,14 @@
 			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
-				"exec": [
-					""
-				]
+				"exec": [ "" ]
 			}
 		},
 		{
 			"listen": "test",
 			"script": {
 				"type": "text/javascript",
-				"exec": [
-					""
-				]
+				"exec": [ "" ]
 			}
 		}
 	],

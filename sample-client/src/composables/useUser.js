@@ -1,6 +1,6 @@
 import { ref, readonly } from 'vue';
 import jwtDecode from 'jwt-decode'
-import axios from '../composables/axiosClient'
+import axios from './resourceClient'
 
 // const USER_STATE = "user-state";
 

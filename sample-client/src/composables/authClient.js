@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { useUser } from '../composables/useUser'
-
+import { useUser } from './useUser'
 
 const axiosClient = () => {
+
   const defaultOptions = {
     baseURL: 'https://localhost:3000',
     withCredentials: true,
@@ -12,7 +12,7 @@ const axiosClient = () => {
     },
   };
 
-  // Create instance
+  // Create instances
   let instance = axios.create(defaultOptions);
 
   instance.interceptors.request.use(function (config) {
@@ -47,8 +47,6 @@ const axiosClient = () => {
 
     return err;
   });
-
-
 
   return instance;
 };

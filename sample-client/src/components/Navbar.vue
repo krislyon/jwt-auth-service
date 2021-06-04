@@ -13,7 +13,7 @@
 
 <script>
 import { useUser } from '../composables/useUser.js'
-import axios from '../composables/axiosClient'
+import axios from '../composables/authClient'
 import { useRouter } from 'vue-router'
 
 export default {
