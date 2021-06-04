@@ -1,0 +1,222 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Sample Auth API
+  description: Sample Authentication API
+
+servers:
+  - url: https://localhost:3000
+
+paths:
+
+  /preauth:
+    post:
+      description: Performs phase-1 of authentication.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PreAuthRequest'
+      responses:
+        '200':
+          description: Successful pre-authentication request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreAuthResponse'
+
+  /auth:
+    post:
+      description: Performs phase-2 of authentication.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+      responses:
+        '200':
+          description: Successful authentication request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+              $ref: '#/components/responses/401Unauthorized'
+        '500':
+              $ref: '#/components/responses/500ServerError'
+
+  /refresh:
+    post:
+      description: Performs refresh of an existing jwt token with a refresh token
+      requestBody:
+        required: false
+      responses:
+        '200':
+          description: Successful logout
+        '500':
+              $ref: '#/components/responses/500ServerError'
+
+  /logout:
+    post:
+      description: Performs log out of user and invalidates jwt token.
+
+  /trl:
+    get:
+      description: Retrieves the token revocation list
+      responses:
+        '200':
+          description: Successful response containing the TRL.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRevocationList'
+
+  /tokenVerificationKey:
+    get:
+      description: Retrieves the public key for token validation.
+      responses:
+        '200':
+          description: Successful response containing the token validation key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenValidationKey'
+  /:
+    get:
+      description: Returns a public test resource.
+      responses:
+        '200':
+              $ref: '#/components/responses/200Message'
+
+  /public:
+    get:
+      description: Returns a public test resource.
+      responses:
+        '200':
+              $ref: '#/components/responses/200Message'
+
+  /protected:
+    get:
+      description: Returns a protected test resource.
+      responses:
+        '200':
+              $ref: '#/components/responses/200Message'
+        '401':
+              $ref: '#/components/responses/401Unauthorized'
+
+
+
+components:
+  schemas:
+    PreAuthRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: string
+        salt:
+          type: string
+        nonce:
+          type: string
+        sig:
+          type: string
+    PreAuthResponse:
+      type: object
+      required:
+        - salt
+        - nonce
+        - sig
+      properties:
+        salt:
+          type: string
+        nonce:
+          type: string
+        sig:
+          type: string
+    AuthRequest:
+      type: object
+      required:
+        - userId
+        - sig
+        - nonce
+        - pwHash
+      properties:
+        userId:
+          type: string
+        sig:
+          type: string
+        nonce:
+          type: string
+        pwHash:
+          type: string
+    AuthResponse:
+      type: object
+      required:
+        - auth_token
+      properties:
+        auth_token:
+          type: string
+      headers:
+        Set-Cookie:
+          schema:
+            type: string
+    TokenRevocationList:
+      type: object
+      required:
+        - revoked_tokens
+      properties:
+        revoked_tokens:
+          type: array
+          items:
+            type: string
+    TokenValidationKey:
+      type: object
+      required:
+        - public_key
+        - key_type
+        - encoding
+        - format
+      properties:
+        public_key:
+          type: string
+        key_type:
+          type: string
+        encoding:
+          type: string
+        format:
+          type: string
+
+  responses:
+    401Unauthorized:
+      description: Unauthorized request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+    500ServerError:
+      description: Malformed Request or Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
+    200Message:
+      description: Successful retrieval of the requested message resource
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+
